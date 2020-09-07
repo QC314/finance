@@ -8,23 +8,30 @@ from function_library import *
 from ta.trend import MACD
 from ta.momentum import RSIIndicator
 from ta.utils import dropna
-# TQDM allows monitoring of loop progress
 from tqdm import tqdm
 
 # Pull and cut down data
 
-start_datetime = '2020-08-20 10:00:00'
-end_datetime = '2020-08-20 11:00:00'
+start_datetime = '2020-06-19 06:00:00'
+end_datetime = '2020-06-19 08:00:00'
 
-root_dir = '/Users/timrawling/Desktop/Projects/Finance/stock_analysis/raw_data/'
+root_dir = 'D:\\network_share\\finance\\raw_data\\'
 file = 'FX-EUR-USD/EURUSD_T_012020-082020.csv'
 
 total_start_time = time.time()
 
-EURUSD_T_FX = pd.read_csv(root_dir+file, index_col = 0, parse_dates = ['Date'])
+EURUSD_T_FX = pd.read_csv(root_dir + file, index_col = 0, parse_dates = ['Date'])
+#EURUSD_T_FX = pd.read_csv(root_dir + file)
+print("Data loaded")
+
 EURUSD_T_FX = EURUSD_T_FX.loc[start_datetime:end_datetime]
 
-#EURUSD_T_FX = EURUSD_T_FX.drop_duplicates(subset = 'Last', inplace = False)
+#pd.to_datetime(EURUSD_T_FX.index)
+
+print(EURUSD_T_FX.head())
+
+#input()
+
 
 # Calculate the macd and macd_sig lines.
 
@@ -43,12 +50,6 @@ MACD_crossover_signal = MACD_crossover_trigger(EURUSD_T_FX.Last, EURUSD_T_FX['MA
 
 MACD_buy_sig = MACD_crossover_signal[0]
 MACD_sell_sig = MACD_crossover_signal[1]
-
-#print(MACD_buy_sig)
-
-#MACD_buy_sig[10])
-
-### NANS!!!!!!!!
 
 length = len(MACD_buy_sig)
 
@@ -81,18 +82,12 @@ RSI_line = EURUSD_T_FX_RSI.rsi()
 #print(RSI_line.tolist())
 
 RSI_indicator_buy_trigger = RSI_indicator_trigger(RSI_line)[0]
-RSI_indicator_sell_trigger = RSI_indicator_trigger(RSI_line)[0]
+RSI_indicator_sell_trigger = RSI_indicator_trigger(RSI_line)[1]
 
-#print(len(RSI_indicator_trigger))
 # Set up a restricted buy signal that considers the RSI and the MACD cross-over triggers
 
 buy_prices = []
 sell_prices = []
-
-#print(len(RSI_indicator_trigger))
-#print(len(MACD_buy_sig))
-#print(len(MACD_sell_sig))
-
 
 #SOMETHING IS WRONG HERE - NOT WORKING ON CHART.....
 count = 0
@@ -120,11 +115,6 @@ for i in zip(RSI_indicator_buy_trigger, RSI_indicator_sell_trigger, MACD_buy_sig
         sell_prices.append(np.NAN)
 
     count += 1
-
-#print(count)
-#print(len(EURUSD_T_FX["Last"]))
-#print(len(buy_prices))
-#print(len(sell_prices))
 
 
 # Run the MW pattern trigger function to get pattern buy/sell signal
@@ -166,3 +156,5 @@ plt.setp(ax1.get_xticklabels(), visible = False)
 plt.setp(ax2.get_xticklabels(), visible = False)
 
 plt.show()
+
+#block = False
