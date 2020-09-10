@@ -608,3 +608,99 @@ def general_harmonic_signal(prices, err_allowed = 0.1, use_custom_pattern_ranges
 
     return action_price_patterns, action_prices, harmonic_signals
 
+def walk_forward(prices, signal, slippage = 4, stop = 10):
+
+    slippage = float(slippage)/float(10000)
+    stop_amount = float(stop)/float(10000)
+
+    if signal == 1:
+
+        initial_stop_loss = prices[-1] - stop_amount
+
+        stop_loss = initial_stop_loss
+
+        for i in range(1, len(price)):
+
+            move = prices[i] - prices[i - 1]
+
+            if move > 0 and (prices[i] - stop_amount) > initial_stop_loss:
+
+                stop_loss = prices[i] - stop_amount
+
+            elif prices[i] < stop_loss:
+
+                return stop_loss - prices[i] - slippage
+
+    elif signal == -1:
+
+        initial_stop_loss = prices[-1] + stop_amount
+
+        stop_loss = initial_stop_loss
+
+        for i in range(1, len(prices)):
+
+            move = prices[i] - prices[i-1]
+
+            if move < 0 and (prices[i] + stop_amount) < initial_stop_loss:
+
+                stop_loss = prices[i] + stop_amount
+
+            elif prices[i] > stop_loss:
+
+                return stop_loss - prices[i] - slippage
+
+def walk_forward_2(prices, signal, slippage = 4, stop = 10):
+
+    trade_results = []
+
+    #Translate into pips (1/100th of 1% or 'one basis point')
+    slippage = float(slippage)/float(10000)
+    stop_amount = float(stop)/float(10000)
+
+    count = 1
+
+    for i in range(1, len(prices)):
+
+        if str(signal[i]) == "nan":
+            trade_results.append(0)
+
+        elif signal[i] == 1:
+            
+            print("Buy trade number " + str(count) + " initiated")
+
+            for j in range(i + 1, len(prices)):
+
+                stop = prices[j-1] - stop_amount
+
+                if prices[j] > stop:
+                    
+                    count += 1
+
+                elif prices[j] < stop_amount:
+                    # If this is the case, then we sell and take the result minus slippage
+                    trade_result = price[j] - prices[i] - slippage 
+                    trade_results.append(trade_result)
+                    print("Buy trade number " + str(count) + " earned " + str(trade_result*10000) + " pips")
+                    break                  
+                
+        elif signal[i] == -1:
+
+            print("Sell trade number " + str(count) + " initiated")
+
+            for j in range(i + 1, len(prices)):
+
+                stop = prices[j-1] + stop_amount
+
+                if prices[j] < stop_amount:
+                    pass
+                    flag = 1
+                    
+                elif prices[j] > stop_amount:
+                    # If this is the case, then we sell and take the result minus slippage
+                    trade_result = -prices[j] + prices[i] - slippage
+                    trade_results.append(trade_result)
+                    print("Sell trade number " + str(count) + " earned " + str(trade_result*10000) + " pips")
+                    break
+        count += 1
+                      
+    return trade_results    
