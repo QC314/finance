@@ -17,7 +17,7 @@ total_start_time = time.time()
 start_datetime = '2020-07-09 10:30:00'
 end_datetime = '2020-07-09 11:00:00'
 
-root_dir = 'D:\\network_share\\finance\\raw_data\\'
+root_dir_1 = 'D:\\network_share\\finance\\raw_data\\'
 root_dir_2 = '/Users/timrawling/Desktop/Projects/Finance/stock_analysis/raw_data/FX-EUR-USD/
 
 file_last = 'FX-EUR-USD/EURUSD_T_LAST_012020-082020.csv'
@@ -27,8 +27,8 @@ file_ask = 'FX-EUR-USD/EURUSD_T_ASK_012020-082020.csv'
 total_start_time = time.time()
 
 #EURUSD_T_LAST_FX = pd.read_csv(root_dir + file_last, index_col = 0, parse_dates = ['Date'])
-EURUSD_T_BID_FX = pd.read_csv(root_dir + file_bid, index_col = 0, parse_dates = ['Date'])
-EURUSD_T_ASK_FX = pd.read_csv(root_dir + file_ask, index_col = 0, parse_dates = ['Date'])
+EURUSD_T_BID_FX = pd.read_csv(root_dir_1 + file_bid, index_col = 0, parse_dates = ['Date'])
+EURUSD_T_ASK_FX = pd.read_csv(root_dir_1 + file_ask, index_col = 0, parse_dates = ['Date'])
 
 #LAST_FX_data = EURUSD_T_LAST_FX.loc[start_datetime:end_datetime]
 BID_FX_data = EURUSD_T_BID_FX.loc[start_datetime:end_datetime]

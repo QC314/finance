@@ -608,6 +608,8 @@ def general_harmonic_signal(prices, err_allowed = 0.1, use_custom_pattern_ranges
 
     return action_price_patterns, action_prices, harmonic_signals
 
+# Backtesting functions
+
 def walk_forward_last_price(prices, signal, slippage = 4, stop = 10):
 
     trade_results = []
@@ -664,10 +666,31 @@ def walk_forward_last_price(prices, signal, slippage = 4, stop = 10):
                       
     return trade_results
 
-def walk_forward_bid_ask(bid, ask, signal, slippage=4, stop=10):
+def walk_forward_bid_ask(bid, ask, signal, slippage = 2, stop = 10):
+
+    # =============================================== DESCRIPTION ======================================================
+
+    # Bid/Ask walk_forward rough backtester:
+
+    # This uses historical prices and a set of signals to backtest a strategy.
+
+    # param (1) - bid: This is the price we can SELL at.
+    # param (2) - ask: This is the price we can BUY at.
+    # param (3) - signal: 1, 0 or -1 representing the action at a price instance. 1 = buy, 0 = do nothing, -1 = sell.
+    # param (4) - slippage: Expected loss above spread (spread loss built in) due to time lag etc.
+    # param (5) - stop: Base stop distance from bid/ask line in either direction.
+
+    # return (1) - trade_results which is a list of all the profit/loss from each trade taken in the series.
+
+    # DEFINITIONS
+
+    # Bid = 'Sell' (lower) in CFD FX language.
+    # Ask = 'Buy' (upper)in CFD FX language.
+
     trade_results = []
 
-    # Translate into pips (1/100th of 1% or 'one basis point')
+    # Translate stop and slippage into pips (1/100th of 1% or 'one basis point')
+
     slippage = float(slippage) / float(10000)
     stop_amount = float(stop) / float(10000)
 
@@ -676,44 +699,111 @@ def walk_forward_bid_ask(bid, ask, signal, slippage=4, stop=10):
     for i in range(1, len(bid)):
 
         if str(signal[i]) == "nan":
+
             trade_results.append(0)
+
+            count += 1
 
         elif signal[i] == 1:
 
             print("Buy trade number " + str(count) + " initiated")
 
-            for j in range(i + 1, len(bid)):
+            count += 1
 
-                long_stop = bid[j - 1] - stop_amount
+            # Start a counter for the j_loop
+
+            long_j_count = 1
+
+            # Set an initial stop, for a long trade this is the set stop distance below the BID price
+
+            initial_long_stop = bid[i] - stop_amount
+
+            for j in range(i + 1, len(bid)):
+                
+                # Move or leave the stop from the previous loop where it was depending on the price movement. 
+                # If price has gone up, then move the stop to follow. If it's gone down, leave it.
+
+                if long_j_count == 1: # on the first iteration, set the long_stop to be the initial stop
+
+                    long_stop = initial_long_stop
+
+                elif (ask[j-1]+bid[j-1])/2 > (ask[j]+bid[j])/2: # i.e. if the price has gone DOWN, then leave the stop as is
+
+                    long_stop = long_stop
+
+                else: # if the price has gone UP, then adjust the long_stop value to follow UP.
+
+                    long_stop = bid[j] - stop_amount
+
+                # now in a different loop statement, check the status of the BID price relative to this updates stop. Exit or remain in position depending.
 
                 if bid[j] > long_stop:
+                    
+                    # If this is the case, then keep holding so go to next iteration in j loop.
 
-                    count += 1
+                    pass                    
 
                 elif bid[j] < long_stop:
-                    # If this is the case, then we sell and take the result minus slippage
-                    trade_result = bid[j] - bid[i] - bid[j]-ask[j]
-                    trade_results.append(trade_result)
+
+                    # If this is the case, then we sell and take the result minus slippage.
+
+                    trade_result = bid[j] - ask[i] - slippage
+                    
                     print("Buy trade number " + str(count) + " earned " + str(trade_result * 10000) + " pips")
+
+                    trade_results.append(trade_result)
+
                     break
 
         elif signal[i] == -1:
 
             print("Sell trade number " + str(count) + " initiated")
 
+            count += 1
+
+            # Start a counter for the j_loop
+
+            short_j_count = 1
+
+            # Set an initial stop, for a short trade this is the set stop distance above the ASK price.
+
+            initial_short_stop = ask[i] + stop_amount
+
             for j in range(i + 1, len(bid)):
 
-                short_stop = ask[j - 1] + stop_amount
+                # Move or leave the stop from the previous loop where it was depending on the price movement. 
+                # If price has gone up, then move the stop to follow. If it's gone down, leave it.
 
-                if ask[j] < short_stop:
+                if long_j_count == 1: # on the first iteration, set the long_stop to be the initial stop
+
+                    short_stop = initial_short_stop
+
+                elif (ask[j-1]+bid[j-1])/2 < (ask[j]+bid[j])/2: # i.e. if the price has gone UP, then leave the stop as is
+
+                    short_stop = short_stop
+
+                else: # if the price has gone DOWN, then adjust the long_stop value to follow DOWN.
+
+                    short_stop = ask[j] + stop_amount
+
+                # now in a different loop statement, check the status of the ASK price relative to this updates stop. Exit or remain in position depending.
+
+                if ask[j] < short_trailing_stop:
+
+                    # If this is the case, then keep holding so go to next iteration in j loop.
+                    
                     pass
-                    flag = 1
 
-                elif ask[j] > short_stop:
+                elif ask[j] > short_trailing_stop:
+
                     # If this is the case, then we sell and take the result minus slippage
-                    trade_result = -prices[j] + prices[i] - slippage
-                    trade_results.append(trade_result)
+
+                    trade_result = bid[i] - ask[j] - slippage
+
                     print("Sell trade number " + str(count) + " earned " + str(trade_result * 10000) + " pips")
+
+                    trade_results.append(trade_result)
+
                     break
         count += 1
 
