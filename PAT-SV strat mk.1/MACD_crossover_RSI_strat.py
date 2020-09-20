@@ -17,7 +17,9 @@ total_start_time = time.time()
 start_datetime = '2020-07-09 10:30:00'
 end_datetime = '2020-07-09 11:00:00'
 
-#root_dir = 'D:\\network_share\\finance\\raw_data\\'
+root_dir = 'D:\\network_share\\finance\\raw_data\\'
+root_dir_2 = '/Users/timrawling/Desktop/Projects/Finance/stock_analysis/raw_data/FX-EUR-USD/
+
 file_last = 'FX-EUR-USD/EURUSD_T_LAST_012020-082020.csv'
 file_bid = 'FX-EUR-USD/EURUSD_T_BID_012020-082020.csv'
 file_ask = 'FX-EUR-USD/EURUSD_T_ASK_012020-082020.csv'
@@ -123,7 +125,7 @@ FX_data["action_signals"] = buy_sell_signal
 
 total_WF_start_time = time.time()   
     
-trade_results = walk_forward_2(FX_data.Last, buy_sell_signal, slippage = 4, stop = 10)
+trade_results = walk_forward_bid_ask(FX_data.Bid, FX_data.Ask, buy_sell_signal, slippage = 4, stop = 10)
 
 total_WF_time = time.time() - total_WF_start_time
 total_time = time.time() - total_start_time
